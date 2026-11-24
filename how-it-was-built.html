@@ -1,0 +1,237 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>How it was built · Trading Floor 3D</title>
+    <meta name="description" content="How Trading Floor 3D puts live AG Grid tables and ECharts charts on clickable 3D screens with Chrome's HTML-in-Canvas API." />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%230a1222'/%3E%3Cpath d='M5 22l7-7 5 4 9-10' stroke='%2322c55e' stroke-width='3' fill='none'/%3E%3C/svg%3E" />
+    <link rel="stylesheet" href="/src/how/how.css" />
+  </head>
+  <body>
+    <header class="hero">
+      <nav class="top">
+        <a href="./" class="brand">TRADING FLOOR <span>3D</span></a>
+        <div class="links">
+          <a href="./">Enter the floor →</a>
+        </div>
+      </nav>
+      <p class="eyebrow">How it was built</p>
+      <h1>Live trading UIs on clickable 3D screens</h1>
+      <p class="lede">
+        Every screen on the trading floor is a real AG Grid table, an ECharts chart or a plain HTML panel. They tick with live
+        (simulated) data, sit in a WebGL room, and still take clicks, typing and scrolling, even at an angle. This page explains
+        how, using Chrome's new <a href="https://developer.chrome.com/docs/web-platform/html-in-canvas">HTML-in-Canvas API</a>
+        (stable since Chrome 157).
+      </p>
+      <p class="byline">Built by <b>Andrea Dito</b></p>
+    </header>
+
+    <main>
+      <section>
+        <h2>The problem</h2>
+        <p>
+          WebGL can't render DOM. Until now, putting a data grid inside a 3D scene meant one of three compromises: rasterise
+          the DOM with a screenshot library (slow, lossy, no interaction), float CSS-transformed HTML above the canvas (no depth,
+          no lighting, no post-processing), or rebuild the grid from scratch in WebGL (and lose everything AG Grid gives you).
+        </p>
+        <p>
+          HTML-in-Canvas removes the compromise. A canvas declared with <code>content="drawable"</code> lays out its child
+          elements like normal DOM, never shows them directly, and lets you draw them into the canvas, including into a WebGL
+          texture. You also tell the browser where each element ended up on screen, so hit testing and accessibility follow it.
+        </p>
+      </section>
+
+      <section>
+        <h2>The architecture</h2>
+        <figure class="diagram">
+          <svg viewBox="0 0 960 420" role="img" aria-labelledby="diag-title">
+            <title id="diag-title">Data flows from the DOM panels to WebGL textures; clicks flow back through a projection matrix</title>
+            <defs>
+              <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="currentColor" /></marker>
+            </defs>
+            <g class="box dom"><rect x="20" y="40" width="250" height="150" rx="10" /><text x="145" y="72">DOM panels</text><text x="145" y="102" class="sub">AG Grid · ECharts (SVG)</text><text x="145" y="124" class="sub">order ticket · risk controls</text><text x="145" y="146" class="sub">children of</text><text x="145" y="168" class="mono">&lt;canvas content="drawable"&gt;</text></g>
+            <g class="box gl"><rect x="355" y="40" width="250" height="150" rx="10" /><text x="480" y="72">WebGL textures</text><text x="480" y="102" class="sub">one per panel</text><text x="480" y="124" class="mono">texElementSubImage2D()</text><text x="480" y="146" class="sub">throttled by distance,</text><text x="480" y="168" class="sub">skipped when off screen</text></g>
+            <g class="box three"><rect x="690" y="40" width="250" height="150" rx="10" /><text x="815" y="72">Three.js room</text><text x="815" y="102" class="sub">ExternalTexture on planes</text><text x="815" y="124" class="sub">reflective floor, neon</text><text x="815" y="146" class="sub">bloom → sRGB output</text><text x="815" y="168" class="sub">camera you walk with</text></g>
+            <g class="flow fwd"><line x1="272" y1="100" x2="350" y2="100" marker-end="url(#arrow)" /><text x="311" y="88">paint</text></g>
+            <g class="flow fwd"><line x1="607" y1="100" x2="685" y2="100" marker-end="url(#arrow)" /><text x="646" y="88">sample</text></g>
+            <g class="box hit"><rect x="355" y="260" width="250" height="130" rx="10" /><text x="480" y="292">Hit-test geometry</text><text x="480" y="322" class="mono">updateElementGeometry()</text><text x="480" y="346" class="sub">one perspective matrix per panel,</text><text x="480" y="368" class="sub">recomputed when the camera moves</text></g>
+            <g class="flow back"><path d="M815 192 C815 260 680 325 610 325" marker-end="url(#arrow)" /><text x="760" y="372">camera · plane pose</text></g>
+            <g class="flow back"><path d="M352 325 C250 325 145 270 145 194" marker-end="url(#arrow)" /><text x="205" y="372">clicks, keys, hover</text></g>
+          </svg>
+          <figcaption>Pixels flow left to right every time a panel repaints; input flows back through a matrix that maps each panel to where it is drawn.</figcaption>
+        </figure>
+      </section>
+
+      <section>
+        <h2>1 · Put the UI inside the canvas</h2>
+        <p>
+          The WebGL canvas opts in with <code>content="drawable"</code>. Each panel (an AG Grid, an ECharts chart, the order
+          ticket) is appended to it with the <code>drawable</code> attribute. They keep real layout, styles, focus and events;
+          they're just not displayed until you draw them.
+        </p>
+        <pre><code>&lt;canvas id="floor" content="drawable"&gt;&lt;/canvas&gt;
+
+const panel = document.createElement('section');
+panel.setAttribute('drawable', '');
+panel.style.width = '1440px';
+panel.style.height = '810px';
+canvas.appendChild(panel);
+createGrid(panel, gridOptions);   // a normal AG Grid</code></pre>
+        <p>
+          Charts use ECharts' <strong>SVG renderer</strong>, so a chart is ordinary DOM inside its panel and gets captured like
+          everything else.
+        </p>
+      </section>
+
+      <section>
+        <h2>2 · Upload only what changed</h2>
+        <p>
+          When a drawable child repaints (a ticking cell, a cell flash, a chart redraw), the canvas fires a <code>paint</code>
+          event listing exactly which elements changed. We mark those dirty and upload them in the render loop with
+          <code>gl.texElementSubImage2D</code> into a texture we own, wrapped in Three.js's <code>ExternalTexture</code>.
+        </p>
+        <pre><code>canvas.addEventListener('paint', (e) =&gt; {
+  for (const el of e.changedElements) surfaces.get(el).dirty = true;
+});
+
+// every frame, for dirty panels that are visible and due an update:
+const { width, height } = canvas.getElementImageDefaultSize(el);
+gl.bindTexture(gl.TEXTURE_2D, tex);              // texStorage2D'd at that size
+gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);    // match Three's UV convention
+gl.texElementSubImage2D(gl.TEXTURE_2D, 0, 0, 0, el);
+gl.generateMipmap(gl.TEXTURE_2D);
+renderer.resetState();                           // we changed GL state behind Three</code></pre>
+        <p>
+          Uploads are throttled by distance (about 12 Hz near, 6 Hz mid-room, 3 Hz far, every frame for the screen you are
+          using). A panel that is out of view stays dirty and uploads when you turn around. Charts also skip their own redraws
+          while hidden. The ticker ring is one long strip scrolled with a UV offset, so scrolling costs no uploads at all.
+        </p>
+      </section>
+
+      <section>
+        <h2>3 · Make it clickable in 3D</h2>
+        <p>
+          Drawing an element into a texture doesn't tell the browser where it is. For that, each frame we give the canvas a
+          transform that maps the element's CSS pixels to where its 3D plane lands on screen. Because the panel is a flat
+          rectangle, that mapping is exactly one 4×4 projective matrix (the same thing a CSS <code>matrix3d()</code> is):
+        </p>
+        <pre><code>// element CSS px → plane-local metres → world → clip → canvas CSS px
+const toPlane = new Matrix4().set(
+  pw / W, 0,       0, -pw / 2,
+  0,      -ph / H, 0,  ph / 2,
+  0,      0,       1,  0,
+  0,      0,       0,  1);
+const toCanvas = new Matrix4().set(
+  cw / 2, 0,       0, cw / 2,
+  0,      -ch / 2, 0, ch / 2,
+  0,      0,       1, 0,
+  0,      0,       0, 1);
+const m = toCanvas.multiply(camera.projectionMatrix)
+  .multiply(camera.matrixWorldInverse)
+  .multiply(mesh.matrixWorld)
+  .multiply(toPlane);
+
+canvas.updateElementGeometry(panel, {
+  canvasTransform: DOMMatrix.fromFloat64Array(new Float64Array(m.elements)),
+});</code></pre>
+        <p>
+          The perspective divide happens in the browser, so the mapping is exact at any angle: <code>elementFromPoint</code>,
+          <code>getBoundingClientRect</code>, hover, focus and real mouse clicks all follow the projected panel. Panels are
+          updated farthest first, because each update moves that element to the top of the hit-test stack, so the nearest one
+          wins where screens overlap. If any corner falls behind the camera the projection would fold, so that panel's
+          geometry is cleared instead.
+        </p>
+      </section>
+
+      <section>
+        <h2>4 · Walk, then use a screen</h2>
+        <p>
+          You walk with pointer lock (WASD and mouse-look). Clicking a screen flies the camera onto its normal and releases the
+          cursor, and from then on you use the grid or ticket directly. The camera distance is chosen so that
+          <strong>one CSS pixel of the panel maps to one screen pixel</strong>:
+        </p>
+        <pre><code>distance = planeHeight × viewportHeight / (2 · tan(fov / 2) · targetPixelHeight)</code></pre>
+        <p>
+          Text is as sharp as on a flat page, and drag gestures (column resize, sliders, scrollbars) move 1:1 with the mouse.
+          The <code>targetPixelHeight</code> is capped so a large panel still fits on a small window.
+        </p>
+      </section>
+
+      <section>
+        <h2>5 · Neon lighting that never blurs text</h2>
+        <p>
+          The room renders into a half-float target, then through an Unreal bloom pass, then to sRGB. Neon strips, light bars
+          and the floor grid are deliberately HDR (values above 1.0), so they bloom. Panel screens are drawn with an unlit
+          shader that converts the texture's sRGB bytes to linear and scales them to at most 0.86, <em>below</em> the 0.9 bloom
+          threshold. They never glow, and their colours come out exactly as in the DOM. The hanging sign is the one exception:
+          boosted to 1.12 so its neon text glows but stays legible.
+        </p>
+        <p>
+          Bloom also eases off while you're using a screen, so nearby neon never haloes over a table. Room accents follow a
+          <em>mood</em>: they drift green or magenta with the desk's P&amp;L, and pulse red while the kill switch is engaged.
+        </p>
+      </section>
+
+      <section>
+        <h2>What we verified in Chrome 158</h2>
+        <p>Runtime probes and the end-to-end smoke test established these behaviours, which the docs don't spell out:</p>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Behaviour</th><th>Observed</th></tr></thead>
+            <tbody>
+              <tr><td><code>getElementImageDefaultSize()</code> before the first paint</td><td>Throws: “No cached paint record for element”</td></tr>
+              <tr><td>Image size</td><td>CSS size × canvas pixel ratio (a 1280×720 panel is 2560×1440 at DPR 2)</td></tr>
+              <tr><td><code>texElementSubImage2D</code> outside the <code>paint</code> handler</td><td>Works; uploads the latest paint record</td></tr>
+              <tr><td><code>UNPACK_FLIP_Y_WEBGL</code></td><td>Respected</td></tr>
+              <tr><td><code>canvasTransform</code> origin</td><td>The canvas's top-left corner; the element's own layout position is ignored</td></tr>
+              <tr><td>Perspective (non-affine) matrices</td><td>Accepted; hit testing and <code>getBoundingClientRect</code> follow them</td></tr>
+              <tr><td>SVG and elements larger than the canvas</td><td>Captured in full</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section>
+        <h2>Budget</h2>
+        <ul class="facts">
+          <li><b>21</b><span>drawable surfaces (19 interactive panels, the ticker ring, the sign)</span></li>
+          <li><b>66 MB</b><span>of panel textures at pixel ratio 1, with mipmaps (scales with the square of the pixel ratio)</span></li>
+          <li><b>12 / 6 / 3 Hz</b><span>upload caps by distance; uncapped for the screen in use</span></li>
+          <li><b>0</b><span>uploads for scrolling the ticker (UV offset)</span></li>
+        </ul>
+        <p>Append <code>?dpr=1</code> for the lightest load, <code>?dpr=2</code> for full retina, or <code>?fx=low</code> to drop reflections and bloom.</p>
+      </section>
+
+      <section>
+        <h2>Gotchas along the way</h2>
+        <ul class="gotchas">
+          <li><b>Size before paint.</b> The first upload has to wait for a paint record; ask for the size too early and it throws.</li>
+          <li><b>Three.js <code>Reflector</code> drops <code>defines</code>.</b> A custom floor shader using <code>#if</code> failed to compile; the switch is now baked into the shader source.</li>
+          <li><b>AG Grid async transactions vs. resets.</b> Queued updates landing after a <code>rowData</code> reset reference rows that no longer exist (error #4). Flush first, or use a synchronous transaction for low-rate updates.</li>
+          <li><b>Pick-lists.</b> The ticket uses segmented buttons rather than native <code>&lt;select&gt;</code>, whose pop-ups are drawn outside the page, so every control renders and hit-tests inside the 3D panel.</li>
+          <li><b>Testing at 2 fps.</b> The headless smoke test runs on a software GPU, so the camera flight takes seconds. Tests wait for the camera to settle instead of sleeping, otherwise a click lands where the panel <em>was</em>.</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>Tested end to end</h2>
+        <p>
+          <code>npm run smoke</code> starts the app in real headless Chrome and drives it with real mouse and keyboard input
+          through the 3D projection. It checks that every panel uploads, clicks a Market Watch row, types a quantity and presses BUY, sends a
+          SELL limit order from the full ticket, cancels it from <em>My Orders</em>, and engages and resets the kill switch.
+        </p>
+      </section>
+
+      <section>
+        <h2>Stack</h2>
+        <p>
+          Three.js · AG Grid Community · Apache ECharts (SVG renderer) · TypeScript · Vite · Puppeteer for the smoke test.
+          Market data, orders and positions are simulated in the browser; nothing connects to a real market.
+        </p>
+        <p class="credit">Built by <b>Andrea Dito</b>.</p>
+        <p><a class="cta" href="./">Enter the trading floor →</a></p>
+      </section>
+    </main>
+  </body>
+</html>

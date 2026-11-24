@@ -1,0 +1,27 @@
+{
+  "name": "trading-floor-3d",
+  "private": true,
+  "author": "Andrea Dito",
+  "license": "MIT",
+  "description": "A walkable 3D trading floor of live AG Grid and ECharts panels, rendered with Chrome's HTML-in-Canvas API",
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit",
+    "smoke": "node scripts/smoke.mjs"
+  },
+  "dependencies": {
+    "ag-grid-community": "^36.3.0",
+    "echarts": "^6.1.0",
+    "three": "^0.187.0"
+  },
+  "devDependencies": {
+    "@types/three": "^0.187.0",
+    "puppeteer-core": "^25.18.1",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.8"
+  }
+}
