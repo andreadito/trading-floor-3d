@@ -389,8 +389,8 @@ export function createOptionsChain(feed: MarketFeed): Panel {
         { field: 'callGamma', headerName: 'Gamma', width: 96, ...numericCol, valueFormatter: g(4), cellClassRules: itmCall },
         { field: 'callDelta', headerName: 'Delta', width: 90, ...numericCol, valueFormatter: g(3), cellClassRules: itmCall },
         { field: 'callIv', headerName: 'IV %', width: 84, ...numericCol, valueFormatter: g(1), cellClassRules: itmCall },
-        { field: 'callBid', headerName: 'Bid', width: 92, ...numericCol, valueFormatter: g(2), cellClassRules: itmCall, enableCellChangeFlash: true },
-        { field: 'callAsk', headerName: 'Ask', width: 92, ...numericCol, valueFormatter: g(2), cellClassRules: itmCall, enableCellChangeFlash: true },
+        { field: 'callBid', headerName: 'Bid', width: 92, ...numericCol, valueFormatter: g(2), cellClassRules: itmCall },
+        { field: 'callAsk', headerName: 'Ask', width: 92, ...numericCol, valueFormatter: g(2), cellClassRules: itmCall },
       ],
     },
     { field: 'strike', headerName: 'STRIKE', width: 120, cellClass: 'strike', headerClass: 'grp-strike', valueFormatter: g(2) },
@@ -398,8 +398,8 @@ export function createOptionsChain(feed: MarketFeed): Panel {
       headerName: 'PUTS',
       headerClass: 'grp-puts',
       children: [
-        { field: 'putBid', headerName: 'Bid', width: 92, ...numericCol, valueFormatter: g(2), cellClassRules: itmPut, enableCellChangeFlash: true },
-        { field: 'putAsk', headerName: 'Ask', width: 92, ...numericCol, valueFormatter: g(2), cellClassRules: itmPut, enableCellChangeFlash: true },
+        { field: 'putBid', headerName: 'Bid', width: 92, ...numericCol, valueFormatter: g(2), cellClassRules: itmPut },
+        { field: 'putAsk', headerName: 'Ask', width: 92, ...numericCol, valueFormatter: g(2), cellClassRules: itmPut },
         { field: 'putIv', headerName: 'IV %', width: 84, ...numericCol, valueFormatter: g(1), cellClassRules: itmPut },
         { field: 'putDelta', headerName: 'Delta', width: 90, ...numericCol, valueFormatter: g(3), cellClassRules: itmPut },
         { field: 'putGamma', headerName: 'Gamma', width: 96, ...numericCol, valueFormatter: g(4), cellClassRules: itmPut },
@@ -407,6 +407,7 @@ export function createOptionsChain(feed: MarketFeed): Panel {
     },
     { field: 'vega', headerName: 'Vega', flex: 1, ...numericCol, valueFormatter: g(3) },
   ];
+  // No cell flashing here: every quote re-prices on each refresh, so flashes would just strobe whole columns.
   const api = mount<OptionRow>(panel, {
     columnDefs,
     rowData: feed.optionChain(feed.selected),
