@@ -20,7 +20,7 @@ async function visit(setup) {
   await setup(page);
   await page.goto(base, { waitUntil: 'load', timeout: 60000 });
   await new Promise((r) => setTimeout(r, 2500));
-  const state = await page.evaluate(() => ({ fallback: !!document.querySelector('.fb'), app: !!window.tradingFloor, title: document.querySelector('.fb h1')?.textContent ?? null }));
+  const state = await page.evaluate(() => ({ fallback: !!document.querySelector('.fb'), app: !!window.tradingFloor, title: document.querySelector('.fb h1')?.textContent ?? null, body: document.querySelector('.fb .lede')?.textContent ?? '' }));
   state.appChunk = requested.some((p) => /\/assets\/app-[^/]*\.js$/.test(p));
   state.errors = errors;
   await page.close();
@@ -42,7 +42,7 @@ try {
     await p.setViewport({ width: 1280, height: 800 });
     await p.evaluateOnNewDocument(() => delete WebGL2RenderingContext.prototype.texElementSubImage2D);
   });
-  check(noApi.fallback && noApi.title?.includes('Chrome 157') && !noApi.appChunk && !noApi.errors.length, `browser without the API gets the fallback ${JSON.stringify(noApi)}`);
+  check(noApi.fallback && noApi.body.includes('Chrome 157') && !noApi.appChunk && !noApi.errors.length, `browser without the API gets the fallback ${JSON.stringify(noApi)}`);
 } finally {
   await browser.close();
   await new Promise((r) => server.httpServer.close(r));

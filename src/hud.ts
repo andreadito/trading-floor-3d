@@ -33,7 +33,6 @@ export class Hud {
       <div class="hud-intro">
         <div class="hud-card">
           <h1>Trading Floor 3D</h1>
-          <p class="hud-byline">Built by ${AUTHOR}</p>
           ${
             supported
               ? `<p>Every screen in the room is a live AG Grid, ECharts chart or HTML panel, drawn into WebGL with Chrome's HTML-in-Canvas API, and still clickable.</p>

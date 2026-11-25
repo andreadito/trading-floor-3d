@@ -387,8 +387,8 @@ body {
 }
 
 .hud-title strong {
-  font-size: 15px;
-  letter-spacing: 0.06em;
+  font: 600 16px 'Space Grotesk', var(--font);
+  letter-spacing: -0.01em;
 }
 
 .hud-title span {
@@ -462,7 +462,7 @@ body {
   inset: 0;
   display: grid;
   place-items: center;
-  background: radial-gradient(ellipse at center, rgba(4, 6, 11, 0.55), rgba(4, 6, 11, 0.85));
+  background: rgba(8, 10, 14, 0.72);
   pointer-events: auto;
 }
 
@@ -473,21 +473,22 @@ body {
 .hud-card {
   width: min(520px, calc(100vw - 32px));
   padding: 28px 30px;
-  border: 1px solid #1d2c4a;
+  border: 1px solid #232836;
   border-radius: 12px;
-  background: rgba(8, 14, 28, 0.92);
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  background: #11141b;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.5);
 }
 
 .hud-card h1 {
   margin: 0 0 10px;
-  font-size: 24px;
+  font: 600 26px/1.15 'Space Grotesk', var(--font);
+  letter-spacing: -0.02em;
 }
 
 .hud-card p {
   margin: 0 0 18px;
-  color: #b2c2dc;
-  line-height: 1.5;
+  color: #a9afbd;
+  line-height: 1.55;
 }
 
 .hud-warn {
@@ -496,19 +497,19 @@ body {
 
 .hud-enter {
   width: 100%;
-  padding: 12px;
+  min-height: 44px;
   margin-bottom: 18px;
-  border: 0;
+  border: 1px solid #ffa826;
   border-radius: 8px;
-  background: #2563eb;
-  color: white;
-  font-size: 15px;
-  font-weight: 700;
+  background: #ffa826;
+  color: #1b1305;
+  font: 600 15px var(--font);
   cursor: pointer;
 }
 
 .hud-enter:hover {
-  background: #3b82f6;
+  background: #fb8b1e;
+  border-color: #fb8b1e;
 }
 
 .hud-card dl {
@@ -521,12 +522,12 @@ body {
 
 .hud-card dt {
   font-family: var(--mono);
-  color: #93c5fd;
+  color: #e8eaf0;
 }
 
 .hud-card dd {
   margin: 0;
-  color: #b2c2dc;
+  color: #a9afbd;
 }
 
 /* ======================================================================
@@ -535,29 +536,21 @@ body {
 
 .hud-author {
   margin-top: 2px;
-  color: #93c5fd !important;
-  font-weight: 600;
-  letter-spacing: 0.04em;
+  color: #a9afbd !important;
+  font-weight: 500;
 }
 
 .hud-author a,
 .hud-how a {
-  color: #f0abfc;
+  color: #ffa826;
   pointer-events: auto;
+  text-underline-offset: 3px;
 }
 
 .hud-how {
   margin: -6px 0 16px !important;
   font-size: 14px;
 }
-
-.hud-byline {
-  margin: -6px 0 14px !important;
-  color: #93c5fd !important;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-}
-
 /* ---------- Grid extras ---------- */
 
 .ag-cell.algo {

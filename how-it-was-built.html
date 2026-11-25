@@ -5,29 +5,35 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>How it was built · Trading Floor 3D</title>
     <meta name="description" content="How Trading Floor 3D puts live AG Grid tables and ECharts charts on clickable 3D screens with Chrome's HTML-in-Canvas API." />
-    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%230a1222'/%3E%3Cpath d='M5 22l7-7 5 4 9-10' stroke='%2322c55e' stroke-width='3' fill='none'/%3E%3C/svg%3E" />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23161a23'/%3E%3Cpath d='M6 21l6-6 5 4 9-10' stroke='%23ffa826' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round' fill='none'/%3E%3C/svg%3E" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap" />
     <link rel="stylesheet" href="/src/how/how.css" />
   </head>
-  <body>
-    <header class="hero">
-      <nav class="top">
-        <a href="./" class="brand">TRADING FLOOR <span>3D</span></a>
-        <div class="links">
-          <a href="./">Enter the floor →</a>
-        </div>
-      </nav>
-      <p class="eyebrow">How it was built</p>
-      <h1>Live trading UIs on clickable 3D screens</h1>
-      <p class="lede">
-        Every screen on the trading floor is a real AG Grid table, an ECharts chart or a plain HTML panel. They tick with live
-        (simulated) data, sit in a WebGL room, and still take clicks, typing and scrolling, even at an angle. This page explains
-        how, using Chrome's new <a href="https://developer.chrome.com/docs/web-platform/html-in-canvas">HTML-in-Canvas API</a>
-        (stable since Chrome 157).
-      </p>
-      <p class="byline">Built by <b>Andrea Dito</b></p>
+  <body class="site">
+    <header class="site-header">
+      <div class="site-container site-header-inner">
+        <a class="site-wordmark" href="./"><svg class="site-mark" viewBox="0 0 32 32" aria-hidden="true"><rect x="0.5" y="0.5" width="31" height="31" rx="7" /><path d="M6 21l6-6 5 4 9-10" /></svg>Trading Floor 3D</a>
+        <nav class="site-nav" aria-label="Site"><a href="./">Demo</a><a href="how-it-was-built" aria-current="page">How it was built</a></nav>
+      </div>
     </header>
 
-    <main>
+    <main class="article">
+      <header class="article-head">
+        <p class="eyebrow">How it was built</p>
+        <h1>Live trading UIs on clickable 3D screens</h1>
+        <p class="lede">
+          Every screen on the trading floor is a real AG Grid table, an ECharts chart or a plain HTML panel. They tick with live
+          (simulated) data, sit in a WebGL room, and still take clicks, typing and scrolling, even at an angle. This page explains
+          how, using Chrome's <a href="https://developer.chrome.com/docs/web-platform/html-in-canvas">HTML-in-Canvas API</a>
+          (stable since Chrome 157).
+        </p>
+        <div class="actions">
+          <a class="btn btn-primary" href="./">Open the demo</a>
+        </div>
+      </header>
+
       <section>
         <h2>The problem</h2>
         <p>
@@ -64,7 +70,8 @@
       </section>
 
       <section>
-        <h2>1 · Put the UI inside the canvas</h2>
+        <span class="step">Step 1</span>
+        <h2>Put the UI inside the canvas</h2>
         <p>
           The WebGL canvas opts in with <code>content="drawable"</code>. Each panel (an AG Grid, an ECharts chart, the order
           ticket) is appended to it with the <code>drawable</code> attribute. They keep real layout, styles, focus and events;
@@ -85,7 +92,8 @@ createGrid(panel, gridOptions);   // a normal AG Grid</code></pre>
       </section>
 
       <section>
-        <h2>2 · Upload only what changed</h2>
+        <span class="step">Step 2</span>
+        <h2>Upload only what changed</h2>
         <p>
           When a drawable child repaints (a ticking cell, a cell flash, a chart redraw), the canvas fires a <code>paint</code>
           event listing exactly which elements changed. We mark those dirty and upload them in the render loop with
@@ -110,7 +118,8 @@ renderer.resetState();                           // we changed GL state behind T
       </section>
 
       <section>
-        <h2>3 · Make it clickable in 3D</h2>
+        <span class="step">Step 3</span>
+        <h2>Make it clickable in 3D</h2>
         <p>
           Drawing an element into a texture doesn't tell the browser where it is. For that, each frame we give the canvas a
           transform that maps the element's CSS pixels to where its 3D plane lands on screen. Because the panel is a flat
@@ -154,7 +163,8 @@ canvas.updateElementGeometry(panel, {
       </section>
 
       <section>
-        <h2>4 · Walk, then use a screen</h2>
+        <span class="step">Step 4</span>
+        <h2>Walk, then use a screen</h2>
         <p>
           You walk with pointer lock (WASD and mouse-look). Clicking a screen flies the camera onto its normal and releases the
           cursor, and from then on you use the grid or ticket directly. The camera distance is chosen so that
@@ -168,7 +178,8 @@ canvas.updateElementGeometry(panel, {
       </section>
 
       <section>
-        <h2>5 · Neon lighting that never blurs text</h2>
+        <span class="step">Step 5</span>
+        <h2>Lighting that never blurs text</h2>
         <p>
           The room renders into a half-float target, then through an Unreal bloom pass, then to sRGB. Neon strips, light bars
           and the floor grid are deliberately HDR (values above 1.0), so they bloom. Panel screens are drawn with an unlit
@@ -240,9 +251,20 @@ canvas.updateElementGeometry(panel, {
           Three.js · AG Grid Community · Apache ECharts (SVG renderer) · TypeScript · Vite · Puppeteer for the smoke test.
           Market data, orders and positions are simulated in the browser; nothing connects to a real market.
         </p>
-        <p class="credit">Built by <b>Andrea Dito</b>.</p>
-        <p><a class="cta" href="./">Enter the trading floor →</a></p>
+      </section>
+
+      <section class="closing">
+        <h2>Walk the floor</h2>
+        <p>Open the demo in Chrome 157 or later on a desktop or laptop. Use WASD to walk, and click any screen to use it.</p>
+        <a class="btn btn-primary" href="./">Open the demo</a>
       </section>
     </main>
+
+    <footer class="site-footer">
+      <div class="site-container site-footer-inner">
+        <span>© 2026 <a href="https://andreadito.com">Andrea Dito</a></span>
+        <span>Market data is simulated · Chrome 157+ on desktop</span>
+      </div>
+    </footer>
   </body>
 </html>
