@@ -60,7 +60,7 @@ export function renderFallback(reason: Unsupported) {
     <header class="site-header">
       <div class="site-container site-header-inner">
         <a class="site-wordmark" href="./"><svg class="site-mark" viewBox="0 0 32 32" aria-hidden="true"><rect x="0.5" y="0.5" width="31" height="31" rx="7" /><path d="M6 21l6-6 5 4 9-10" /></svg>Trading Floor 3D</a>
-        <nav class="site-nav" aria-label="Site"><a href="./" aria-current="page">Demo</a><a href="how-it-was-built">How it was built</a></nav>
+        <nav class="site-nav" aria-label="Site"><a href="./" aria-current="page">Demo</a><a href="how-it-was-built">How it was built</a><a href="https://github.com/andreadito/trading-floor-3d">GitHub</a></nav>
       </div>
     </header>
     <main class="site-container fb">
