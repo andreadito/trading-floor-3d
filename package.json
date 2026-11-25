@@ -11,7 +11,8 @@
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
-    "smoke": "node scripts/smoke.mjs"
+    "smoke": "node scripts/smoke.mjs",
+    "check:fallback": "vite build && node scripts/fallback-check.mjs"
   },
   "dependencies": {
     "ag-grid-community": "^36.3.0",

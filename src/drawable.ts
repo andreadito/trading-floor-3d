@@ -14,12 +14,7 @@
 import * as THREE from 'three';
 import { setPanelVisible } from './panels/visibility';
 
-export function supportsHtmlInCanvas(): boolean {
-  if (typeof document === 'undefined') return false;
-  const canvas = document.createElement('canvas');
-  canvas.setAttribute('content', 'drawable');
-  return canvas.content === 'drawable' && typeof WebGL2RenderingContext !== 'undefined' && 'texElementSubImage2D' in WebGL2RenderingContext.prototype;
-}
+export { supportsHtmlInCanvas } from './support';
 
 export interface SurfaceSpec {
   id: string;

@@ -15,7 +15,9 @@ npm run smoke      # end-to-end check in real headless Chrome (CHROME_PATH=... t
 npm run build      # static site in dist/ (index.html + how-it-was-built.html)
 ```
 
-URL options: `?dpr=1` (lightest), `?dpr=2` (full retina; the default cap is 1.5), `?fx=low` (no floor reflections or bloom).
+URL options: `?dpr=1` (lightest), `?dpr=2` (full retina; the default cap is 1.5), `?fx=low` (no floor reflections or bloom), `?force=1` (skip the device check).
+
+**Unsupported devices.** `src/main.ts` checks for HTML-in-Canvas and for a mouse or trackpad before loading anything heavy. Phones, tablets, Safari, Firefox and Chrome before 157 get a small page with screenshots, a "copy link for desktop" (or Share) button and a link to the write-up, and never download the 2.7 MB 3D bundle. `npm run check:fallback` verifies both paths on the production build.
 
 ## Controls
 
