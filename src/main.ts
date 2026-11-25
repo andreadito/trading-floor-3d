@@ -73,8 +73,11 @@ for (const panel of panels) {
     cssHeight: parseFloat(panel.root.style.height),
   });
 }
+// Desk monitors stand in front of the wall screens, so they go on top of the hit-test stack.
+const isDesk = (p: Panel) => world.slots.get(p.id)!.planeWidth < 2;
+surfaces.establishStacking([...panels.filter((p) => !isDesk(p)), ...panels.filter(isDesk)].map((p) => p.id));
 surfaces.add({ id: 'ticker', label: 'Ticker', element: createTicker(feed), mesh: world.ticker.mesh, planeWidth: 0, planeHeight: 0, interactive: false, wrapRepeat: true, maxHz: 2 });
-surfaces.add({ id: 'sign', label: 'Sign', element: createSign(), mesh: world.sign.mesh, planeWidth: 0, planeHeight: 0, interactive: false, maxHz: 1 });
+surfaces.add({ id: 'sign', label: 'World clocks', element: createSign(), mesh: world.sign.mesh, planeWidth: 0, planeHeight: 0, interactive: false, maxHz: 2 });
 
 const controls = new FloorControls(camera, canvas, targets, world.colliders);
 const hud = new Hud(document.querySelector('#hud')!, controls, supported);

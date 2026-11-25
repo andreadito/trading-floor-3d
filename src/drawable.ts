@@ -121,6 +121,22 @@ export class DrawableSurfaces {
     return this.surfaces.find((s) => s.spec.id === id);
   }
 
+  /**
+   * Fix the hit-test stacking order, bottom to top. In Chrome 158 the stack order is set by the
+   * order in which elements first receive geometry; later updates (and clears) never reorder them,
+   * even without preserveHitTestOrder. So we assign a throwaway transform to every interactive
+   * panel once, in the order we want, and clear it again before the first real frame.
+   */
+  establishStacking(bottomToTop: string[]) {
+    const tiny = new DOMMatrix().scale(1e-4, 1e-4);
+    for (const id of bottomToTop) {
+      const s = this.get(id);
+      if (!s || s.spec.interactive === false) continue;
+      this.canvas.updateElementGeometry(s.spec.element, { canvasTransform: tiny });
+      this.canvas.clearElementGeometry(s.spec.element);
+    }
+  }
+
   /** Force every panel to re-upload (after a resize or DPR change). */
   invalidateAll() {
     for (const s of this.surfaces) s.dirty = true;
@@ -270,9 +286,7 @@ export class DrawableSurfaces {
     }
     if (key === this.lastGeometryKey) return;
     this.lastGeometryKey = key;
-    // Farthest first: each update moves the element to the top of the hit-test stack,
-    // so the nearest panel ends up on top where panels overlap on screen.
-    placed.sort((a, b) => b.s.distance - a.s.distance);
+    // Stacking where panels overlap on screen was fixed once by establishStacking().
     for (const { s, matrix } of placed) {
       this.canvas.updateElementGeometry(s.spec.element, { canvasTransform: DOMMatrix.fromFloat64Array(new Float64Array(matrix.elements)) });
       s.geometryActive = true;

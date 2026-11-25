@@ -514,10 +514,10 @@ function buildTickerRing(scene: THREE.Scene, anim: Animated) {
   return { mesh, material };
 }
 
-/** Hanging attribution sign over the desks, facing the entrance. Its texture is HDR-boosted so the neon text blooms. */
+/** The world-clock board hanging over the desks, facing the entrance. Its texture is HDR-boosted so the digits glow. */
 function buildSign(scene: THREE.Scene) {
-  const planeWidth = 4.6;
-  const planeHeight = planeWidth * (360 / 1440);
+  const planeWidth = 6.4;
+  const planeHeight = planeWidth * (330 / 1920);
   const material = createScreenMaterial({ idleColor: 0x020309 });
   material.uniforms.brightness.value = 1.12; // just over the bloom threshold: a glow, still legible
   const group = new THREE.Group();

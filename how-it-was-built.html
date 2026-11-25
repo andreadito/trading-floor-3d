@@ -137,10 +137,19 @@ canvas.updateElementGeometry(panel, {
 });</code></pre>
         <p>
           The perspective divide happens in the browser, so the mapping is exact at any angle: <code>elementFromPoint</code>,
-          <code>getBoundingClientRect</code>, hover, focus and real mouse clicks all follow the projected panel. Panels are
-          updated farthest first, because each update moves that element to the top of the hit-test stack, so the nearest one
-          wins where screens overlap. If any corner falls behind the camera the projection would fold, so that panel's
-          geometry is cleared instead.
+          <code>getBoundingClientRect</code>, hover, focus and real mouse clicks all follow the projected panel.
+        </p>
+        <p>
+          A cheaper affine approximation (a 2D matrix fitted to three corners) is not good enough. With a 400×300 panel of nine
+          buttons, the exact matrix hit all nine at every angle we tried, while the affine fit hit 8, 6 and 4 of them at 30°,
+          50° and 65°, with the far corner off by 130, 211 and 260 px.
+        </p>
+        <p>
+          Two edge cases need handling. If any corner falls behind the camera (<em>w</em> ≤ 0), the projection folds: Chrome
+          reports a bounding box thousands of pixels tall and the panel stops taking clicks, even its visible part. Those
+          panels get <code>clearElementGeometry()</code> instead. And where panels overlap on screen, Chrome 158 stacks them in
+          the order they <em>first</em> received geometry; later updates and clears never reorder them. So the demo sets the
+          order once at startup, wall screens first and desk monitors last, because monitors are what stand in front of walls.
         </p>
       </section>
 
@@ -164,8 +173,8 @@ canvas.updateElementGeometry(panel, {
           The room renders into a half-float target, then through an Unreal bloom pass, then to sRGB. Neon strips, light bars
           and the floor grid are deliberately HDR (values above 1.0), so they bloom. Panel screens are drawn with an unlit
           shader that converts the texture's sRGB bytes to linear and scales them to at most 0.86, <em>below</em> the 0.9 bloom
-          threshold. They never glow, and their colours come out exactly as in the DOM. The hanging sign is the one exception:
-          boosted to 1.12 so its neon text glows but stays legible.
+          threshold. They never glow, and their colours come out exactly as in the DOM. The world-clock board hanging over the
+          desks is the one exception: boosted to 1.12 so its digits glow but stay legible.
         </p>
         <p>
           Bloom also eases off while you're using a screen, so nearby neon never haloes over a table. Room accents follow a
@@ -186,6 +195,8 @@ canvas.updateElementGeometry(panel, {
               <tr><td><code>UNPACK_FLIP_Y_WEBGL</code></td><td>Respected</td></tr>
               <tr><td><code>canvasTransform</code> origin</td><td>The canvas's top-left corner; the element's own layout position is ignored</td></tr>
               <tr><td>Perspective (non-affine) matrices</td><td>Accepted; hit testing and <code>getBoundingClientRect</code> follow them</td></tr>
+              <tr><td>A corner behind the camera (<em>w</em> ≤ 0)</td><td>Bounding box blows up; the element takes no clicks at all</td></tr>
+              <tr><td>Hit-test stacking of overlapping drawables</td><td>Fixed by the order elements first got geometry; later updates, clears and <code>preserveHitTestOrder</code> don't change it</td></tr>
               <tr><td>SVG and elements larger than the canvas</td><td>Captured in full</td></tr>
             </tbody>
           </table>
@@ -195,7 +206,7 @@ canvas.updateElementGeometry(panel, {
       <section>
         <h2>Budget</h2>
         <ul class="facts">
-          <li><b>21</b><span>drawable surfaces (19 interactive panels, the ticker ring, the sign)</span></li>
+          <li><b>21</b><span>drawable surfaces (19 interactive panels, the ticker ring, the world-clock board)</span></li>
           <li><b>66 MB</b><span>of panel textures at pixel ratio 1, with mipmaps (scales with the square of the pixel ratio)</span></li>
           <li><b>12 / 6 / 3 Hz</b><span>upload caps by distance; uncapped for the screen in use</span></li>
           <li><b>0</b><span>uploads for scrolling the ticker (UV offset)</span></li>

@@ -37,7 +37,7 @@ URL options: `?dpr=1` (lightest), `?dpr=2` (full retina; the default cap is 1.5)
 | South wall | **Options Chain** (calls/puts with IV and greeks), **Risk Controls** (kill switch, limits, flatten all), **Order Flow** (Sankey: trader → venue → side) |
 | Front desks | **Market Watch**, **Order Book** with a quick ticket, **Positions & P&L** with per-row flatten |
 | Side pods | **Order Ticket** (MKT/LMT/STP, DAY/IOC/GTC, VWAP/TWAP/POV, pre-trade risk checks), **My Orders** (amend / cancel), **Time & Sales**, **Cross-Asset** (FX, rates, commodities, crypto, VIX) |
-| Ceiling | Ticker-tape ring, and the hanging sign |
+| Overhead | Ticker-tape ring, and a world-clock board (New York, London, Frankfurt, Tokyo, Hong Kong, Sydney) showing each exchange's session status |
 
 Clicking a symbol anywhere (Market Watch, Positions, Market Map, the ticket's ◀ ▶) moves the whole desk to it: chart, book, depth, tape, options chain and vol surface.
 
