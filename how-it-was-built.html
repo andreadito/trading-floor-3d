@@ -77,9 +77,8 @@
           ticket) is appended to it with the <code>drawable</code> attribute. They keep real layout, styles, focus and events;
           they're just not displayed until you draw them.
         </p>
-        <pre><code>&lt;canvas id="floor" content="drawable"&gt;&lt;/canvas&gt;
-
-const panel = document.createElement('section');
+        <pre><code class="language-html">&lt;canvas id="floor" content="drawable"&gt;&lt;/canvas&gt;</code></pre>
+        <pre><code class="language-js">const panel = document.createElement('section');
 panel.setAttribute('drawable', '');
 panel.style.width = '1440px';
 panel.style.height = '810px';
@@ -99,7 +98,7 @@ createGrid(panel, gridOptions);   // a normal AG Grid</code></pre>
           event listing exactly which elements changed. We mark those dirty and upload them in the render loop with
           <code>gl.texElementSubImage2D</code> into a texture we own, wrapped in Three.js's <code>ExternalTexture</code>.
         </p>
-        <pre><code>canvas.addEventListener('paint', (e) =&gt; {
+        <pre><code class="language-js">canvas.addEventListener('paint', (e) =&gt; {
   for (const el of e.changedElements) surfaces.get(el).dirty = true;
 });
 
@@ -125,7 +124,7 @@ renderer.resetState();                           // we changed GL state behind T
           transform that maps the element's CSS pixels to where its 3D plane lands on screen. Because the panel is a flat
           rectangle, that mapping is exactly one 4×4 projective matrix (the same thing a CSS <code>matrix3d()</code> is):
         </p>
-        <pre><code>// element CSS px → plane-local metres → world → clip → canvas CSS px
+        <pre><code class="language-js">// element CSS px → plane-local metres → world → clip → canvas CSS px
 const toPlane = new Matrix4().set(
   pw / W, 0,       0, -pw / 2,
   0,      -ph / H, 0,  ph / 2,
@@ -170,7 +169,7 @@ canvas.updateElementGeometry(panel, {
           cursor, and from then on you use the grid or ticket directly. The camera distance is chosen so that
           <strong>one CSS pixel of the panel maps to one screen pixel</strong>:
         </p>
-        <pre><code>distance = planeHeight × viewportHeight / (2 · tan(fov / 2) · targetPixelHeight)</code></pre>
+        <pre class="formula"><code>distance = planeHeight × viewportHeight / (2 · tan(fov / 2) · targetPixelHeight)</code></pre>
         <p>
           Text is as sharp as on a flat page, and drag gestures (column resize, sliders, scrollbars) move 1:1 with the mouse.
           The <code>targetPixelHeight</code> is capped so a large panel still fits on a small window.

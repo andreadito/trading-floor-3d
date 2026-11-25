@@ -196,3 +196,14 @@ figcaption {
 .closing p {
   color: var(--text-2);
 }
+
+/* ---------- highlighted code (Shiki, catppuccin-mocha) ---------- */
+
+.site pre.shiki {
+  /* Keep the page's surface colour; the theme supplies the token colours. */
+  background-color: var(--surface) !important;
+}
+
+.site pre.formula code {
+  color: var(--accent);
+}
